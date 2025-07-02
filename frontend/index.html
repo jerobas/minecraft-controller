@@ -7,60 +7,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body
-    class="bg-neutral-950 text-white min-h-screen flex items-center justify-center p-6"
+    class="bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 min-h-screen flex items-center justify-center p-4"
   >
     <div
-      class="max-w-2xl w-full mx-auto space-y-6 bg-neutral-900 rounded-2xl p-6 shadow-xl border border-neutral-800"
+      class="backdrop-blur-sm bg-neutral-900/70 border border-neutral-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-6"
     >
-      <h1 class="text-3xl font-bold text-center mb-4">
+      <h1
+        class="text-4xl font-extrabold text-center mb-4 text-white drop-shadow"
+      >
         Minecraft Server Panel
       </h1>
-
-      <input
-        id="token"
-        type="text"
-        placeholder="JWT Token"
-        class="w-full p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <button
           id="acceptEula"
-          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg w-full transition"
+          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
         >
           Accept EULA
         </button>
         <button
           id="startServer"
-          class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg w-full transition"
+          class="bg-green-500 hover:bg-green-600 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
         >
           Start Server
         </button>
         <button
           id="stopServer"
-          class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg w-full transition"
+          class="bg-red-500 hover:bg-red-600 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
         >
           Stop Server
         </button>
-        <div>
-          <button
-            id="deleteWorld"
-            class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg w-full mt-2 transition"
-          >
-            Delete World
-          </button>
-        </div>
+        <button
+          id="deleteWorld"
+          class="bg-red-700 hover:bg-red-800 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
+        >
+          Delete World
+        </button>
       </div>
 
       <div>
         <h2 class="font-semibold mt-4 mb-2">Select PaperMC Version</h2>
         <select
           id="paperVersions"
-          class="text-black p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="text-black p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         ></select>
         <button
           id="downloadPaper"
-          class="bg-purple-500 hover:bg-purple-600 px-4 py-2 rounded-lg w-full mt-2 transition"
+          class="bg-purple-500 hover:bg-purple-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
         >
           Download & Use Selected
         </button>
@@ -72,11 +65,11 @@
           id="commandInput"
           type="text"
           placeholder="Type command to send"
-          class="w-full p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
         />
         <button
           id="sendCommand"
-          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg w-full mt-2 transition"
+          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
         >
           Send Command
         </button>
@@ -92,7 +85,7 @@
         />
         <button
           id="uploadPlugin"
-          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg w-full mt-2 transition"
+          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
         >
           Upload Plugin(s)
         </button>
@@ -103,11 +96,11 @@
         <textarea
           id="serverProperties"
           rows="20"
-          class="w-full p-4 text-sm font-mono bg-neutral-800 text-neutral-200 rounded-lg border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full p-4 text-sm font-mono bg-neutral-800 text-neutral-200 rounded-lg border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-green-500"
         ></textarea>
         <button
           id="saveProperties"
-          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg w-full mt-2 transition"
+          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
         >
           Save Properties
         </button>
@@ -117,20 +110,14 @@
         <h2 class="font-semibold mt-4 mb-2">Server Logs</h2>
         <pre
           id="logs"
-          class="bg-black rounded-lg p-4 text-sm font-mono h-64 overflow-y-scroll border border-neutral-700"
+          class="bg-black/70 rounded-lg p-4 text-sm font-mono h-64 overflow-y-scroll border border-neutral-700 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
         ></pre>
       </div>
     </div>
 
     <script>
-      const getHeaders = () => ({
-        Authorization: `Bearer ${
-          document.getElementById("token").value || "jerobas"
-        }`,
-      });
-
       const loadVersions = () => {
-        fetch("/paper-versions", { headers: getHeaders() })
+        fetch("/paper-versions")
           .then((res) => res.json())
           .then((data) => {
             const select = document.getElementById("paperVersions");
@@ -145,22 +132,22 @@
       };
 
       document.getElementById("acceptEula").onclick = () => {
-        fetch("/accept-eula", { method: "POST", headers: getHeaders() });
+        fetch("/accept-eula", { method: "POST" });
       };
 
       document.getElementById("startServer").onclick = () => {
-        fetch("/start", { method: "POST", headers: getHeaders() });
+        fetch("/start", { method: "POST" });
       };
 
       document.getElementById("stopServer").onclick = () => {
-        fetch("/stop", { method: "POST", headers: getHeaders() });
+        fetch("/stop", { method: "POST" });
       };
 
       document.getElementById("sendCommand").onclick = () => {
         const command = document.getElementById("commandInput").value;
         fetch("/send-command", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...getHeaders() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ command }),
         });
       };
@@ -169,7 +156,7 @@
         const version = document.getElementById("paperVersions").value;
         fetch("/download-paper", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...getHeaders() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ version }),
         });
       };
@@ -180,11 +167,7 @@
         Array.from(files).forEach((file) => {
           formData.append("pluginJar", file);
         });
-        fetch("/upload-plugin", {
-          method: "POST",
-          body: formData,
-          headers: getHeaders(),
-        });
+        fetch("/upload-plugin", { method: "POST", body: formData });
       };
 
       document.getElementById("deleteWorld").onclick = () => {
@@ -193,7 +176,7 @@
             "Are you sure you want to delete the world? This action is irreversible."
           )
         ) {
-          fetch("/delete-world", { method: "POST", headers: getHeaders() });
+          fetch("/delete-world", { method: "POST" });
         }
       };
 
@@ -201,20 +184,20 @@
         const content = document.getElementById("serverProperties").value;
         fetch("/server-properties", {
           method: "POST",
-          headers: { "Content-Type": "application/json", ...getHeaders() },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content }),
         });
       };
 
       const fetchLogs = () => {
-        fetch("/logs", { headers: getHeaders() })
+        fetch("/logs")
           .then((res) => res.text())
           .then((text) => (document.getElementById("logs").textContent = text));
       };
 
       setInterval(fetchLogs, 3000);
 
-      fetch("/server-properties", { headers: getHeaders() })
+      fetch("/server-properties")
         .then((res) => res.json())
         .then((data) => {
           document.getElementById("serverProperties").value = data.content;

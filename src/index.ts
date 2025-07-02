@@ -3,7 +3,9 @@ import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
 import multer from "multer";
+import { promisify } from "util";
 
+const execAsync = promisify(exec);
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -21,32 +23,37 @@ app.use(express.static("frontend"));
 const upload = multer({ dest: "uploads/" });
 
 app.post("/accept-eula", async (_, res) => {
-  fs.writeFileSync(eulaFile, "eula=true\n");
-  const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
-  exec(startCmd, { cwd: serverDir }, (error, _, stderr) => {
-    if (error) return res.status(500).json({ error: stderr });
+  try {
+    fs.writeFileSync(eulaFile, "eula=true\n");
+    const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
+    await execAsync(startCmd, { cwd: serverDir });
     res.json({ success: true });
-  });
-  res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to start server." });
+  }
 });
 
 app.post(
   "/upload-plugin",
   upload.array("pluginJar"),
   async (req: Request, res: Response) => {
-    if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir);
-
-    (req.files as Express.Multer.File[]).forEach(
-      (file: Express.Multer.File) => {
+    try {
+      if (!fs.existsSync(pluginsDir))
+        fs.mkdirSync(pluginsDir, { recursive: true });
+      (req.files as Express.Multer.File[]).forEach((file) => {
         const targetPath = path.join(pluginsDir, file.originalname);
         fs.renameSync(file.path, targetPath);
-      }
-    );
-    res.json({ success: true });
+      });
+      res.json({ success: true });
+    } catch (error: any) {
+      res
+        .status(500)
+        .json({ error: error.message || "Failed to upload plugin." });
+    }
   }
 );
 
-app.get("/server-properties", (req: Request, res: Response) => {
+app.get("/server-properties", (_, res) => {
   if (!fs.existsSync(serverPropertiesFile)) {
     res.status(404).json({ error: "server.properties not found" });
   }
@@ -54,26 +61,33 @@ app.get("/server-properties", (req: Request, res: Response) => {
   res.json({ content });
 });
 
-app.post("/server-properties", async (req: Request, res: Response) => {
+app.post("/server-properties", (req: Request, res: Response) => {
   const { content } = req.body;
+  if (!content || typeof content !== "string") {
+    res.status(400).json({ error: "Invalid content." });
+  }
   fs.writeFileSync(serverPropertiesFile, content);
   res.json({ success: true });
 });
 
-app.post("/start", (_, res) => {
-  const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
-  exec(startCmd, { cwd: serverDir }, (error, _, stderr) => {
-    if (error) return res.status(500).json({ error: stderr });
+app.post("/start", async (_, res) => {
+  try {
+    const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
+    await execAsync(startCmd, { cwd: serverDir });
     res.json({ success: true });
-  });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to start server." });
+  }
 });
 
-app.post("/stop", (_, res) => {
-  const stopCmd = `screen -S minecraft -X stuff \"stop\\n\"`;
-  exec(stopCmd, (error, _, stderr) => {
-    if (error) return res.status(500).json({ error: stderr });
+app.post("/stop", async (_, res) => {
+  try {
+    const stopCmd = `screen -S minecraft -X stuff "stop\\n"`;
+    await execAsync(stopCmd);
     res.json({ success: true });
-  });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to stop server." });
+  }
 });
 
 app.get("/logs", (_, res) => {
@@ -87,7 +101,7 @@ app.get("/logs", (_, res) => {
 app.get("/paper-versions", async (_, res) => {
   try {
     const response = await fetch("https://api.papermc.io/v2/projects/paper");
-    const data = (await response.json()) as any;
+    const data = await response.json();
     res.json({ versions: data.versions });
   } catch {
     res.status(500).json({ error: "Failed to fetch Paper versions." });
@@ -96,11 +110,14 @@ app.get("/paper-versions", async (_, res) => {
 
 app.post("/download-paper", async (req: Request, res: Response) => {
   const { version } = req.body;
+  if (!version || typeof version !== "string") {
+    res.status(400).json({ error: "Invalid version." });
+  }
   try {
     const buildsRes = await fetch(
       `https://api.papermc.io/v2/projects/paper/versions/${version}`
     );
-    const buildsData = (await buildsRes.json()) as any;
+    const buildsData = await buildsRes.json();
     const latestBuild = buildsData.builds[buildsData.builds.length - 1];
     const fileName = `paper-${version}-${latestBuild}.jar`;
 
@@ -122,28 +139,32 @@ app.post("/download-paper", async (req: Request, res: Response) => {
   }
 });
 
-app.post("/delete-world", (req: Request, res: Response) => {
-  fs.rmSync(serverDir, { recursive: true, force: true });
-  fs.mkdirSync(serverDir, { recursive: true });
-  res.json({
-    success: true,
-    message: "Server directory deleted and recreated.",
-  });
+app.post("/delete-world", (_, res) => {
+  try {
+    if (fs.existsSync(serverDir)) {
+      fs.rmSync(serverDir, { recursive: true, force: true });
+    }
+    fs.mkdirSync(serverDir, { recursive: true });
+    res.json({
+      success: true,
+      message: "Server directory deleted and recreated.",
+    });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to reset server directory." });
+  }
 });
 
 app.post("/send-command", (req: Request, res: Response) => {
   const { command } = req.body;
-
   if (!command || typeof command !== "string") {
     res.status(400).json({ error: "Invalid command." });
   }
-
   const sendCmd = `screen -S minecraft -X stuff "${command}\\n"`;
   exec(sendCmd, (error, _, stderr) => {
     if (error) {
-      return res
-        .status(500)
-        .json({ error: stderr || "Failed to send command." });
+      res.status(500).json({ error: stderr || "Failed to send command." });
     }
     res.json({ success: true, message: `Command "${command}" sent.` });
   });
