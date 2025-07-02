@@ -42,6 +42,14 @@
         >
           Stop Server
         </button>
+        <div>
+          <button
+            id="deleteWorld"
+            class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg w-full mt-2 transition"
+          >
+            Delete World
+          </button>
+        </div>
       </div>
 
       <div>
@@ -177,6 +185,16 @@
           body: formData,
           headers: getHeaders(),
         });
+      };
+
+      document.getElementById("deleteWorld").onclick = () => {
+        if (
+          confirm(
+            "Are you sure you want to delete the world? This action is irreversible."
+          )
+        ) {
+          fetch("/delete-world", { method: "POST", headers: getHeaders() });
+        }
       };
 
       document.getElementById("saveProperties").onclick = () => {
