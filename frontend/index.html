@@ -7,115 +7,185 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body
-    class="bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 min-h-screen flex items-center justify-center p-4"
+    class="bg-gradient-to-br from-green-100 via-white to-green-50 min-h-screen flex items-center justify-center p-4"
   >
     <div
-      class="backdrop-blur-sm bg-neutral-900/70 border border-neutral-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 space-y-6"
+      class="backdrop-blur-sm bg-white/80 border border-green-200 rounded-3xl shadow-2xl max-w-2xl w-full p-8 space-y-6"
     >
       <h1
-        class="text-4xl font-extrabold text-center mb-4 text-white drop-shadow"
+        class="text-4xl font-extrabold text-center mb-4 text-green-800 drop-shadow"
       >
-        Minecraft Server Panel
+        🌿 Minecraft Server Panel
       </h1>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
           id="acceptEula"
-          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
+          class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
           Accept EULA
         </button>
         <button
           id="startServer"
-          class="bg-green-500 hover:bg-green-600 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
           Start Server
         </button>
         <button
           id="stopServer"
-          class="bg-red-500 hover:bg-red-600 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
+          class="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
           Stop Server
         </button>
         <button
           id="deleteWorld"
-          class="bg-red-700 hover:bg-red-800 active:scale-95 px-4 py-2 rounded-lg w-full transition-transform"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
           Delete World
         </button>
       </div>
 
       <div>
-        <h2 class="font-semibold mt-4 mb-2">Select PaperMC Version</h2>
+        <h2 class="text-lg font-bold text-green-800 mb-2">
+          Select PaperMC Version
+        </h2>
         <select
           id="paperVersions"
-          class="text-black p-3 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          class="text-gray-800 p-3 w-full rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400"
         ></select>
         <button
           id="downloadPaper"
-          class="bg-purple-500 hover:bg-purple-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
+          class="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-3 rounded-xl w-full mt-2 transition-all shadow"
         >
           Download & Use Selected
         </button>
       </div>
 
       <div>
-        <h2 class="font-semibold mt-4 mb-2">Send Command</h2>
+        <h2 class="text-lg font-bold text-green-800 mb-2">Send Command</h2>
         <input
           id="commandInput"
           type="text"
           placeholder="Type command to send"
-          class="w-full p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+          class="w-full p-3 rounded-xl border border-green-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400"
         />
         <button
           id="sendCommand"
-          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-3 rounded-xl w-full mt-2 transition-all shadow"
         >
           Send Command
         </button>
       </div>
 
       <div>
-        <h2 class="font-semibold mt-4 mb-2">Upload Plugin(s)</h2>
+        <h2 class="text-lg font-bold text-green-800 mb-2">Upload Plugin(s)</h2>
         <input
           id="pluginJar"
           type="file"
-          class="block text-black w-full p-3 rounded-lg bg-white"
+          class="block text-gray-800 w-full p-3 rounded-xl border border-green-300 bg-white"
           multiple
         />
         <button
           id="uploadPlugin"
-          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-3 rounded-xl w-full mt-2 transition-all shadow"
         >
           Upload Plugin(s)
         </button>
       </div>
 
       <div>
-        <h2 class="font-semibold mt-4 mb-2">Server Properties</h2>
+        <h2 class="text-lg font-bold text-green-800 mb-2" id="pluginListTitle">
+          Installed Plugins
+        </h2>
+        <ul id="pluginList" class="space-y-2"></ul>
+      </div>
+
+      <div>
+        <h2 class="text-lg font-bold text-green-800 mb-2">Server Properties</h2>
         <textarea
           id="serverProperties"
-          rows="20"
-          class="w-full p-4 text-sm font-mono bg-neutral-800 text-neutral-200 rounded-lg border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          rows="15"
+          class="w-full p-4 text-sm font-mono bg-green-50 text-green-900 rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400"
         ></textarea>
         <button
           id="saveProperties"
-          class="bg-blue-500 hover:bg-blue-600 active:scale-95 px-4 py-2 rounded-lg w-full mt-2 transition-transform"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-3 rounded-xl w-full mt-2 transition-all shadow"
         >
           Save Properties
         </button>
       </div>
 
       <div>
-        <h2 class="font-semibold mt-4 mb-2">Server Logs</h2>
+        <h2 class="text-lg font-bold text-green-800 mb-2">Server Logs</h2>
         <pre
           id="logs"
-          class="bg-black/70 rounded-lg p-4 text-sm font-mono h-64 overflow-y-scroll border border-neutral-700 scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent"
+          class="bg-green-50 rounded-xl p-4 text-xs font-mono h-64 overflow-y-scroll border border-green-300 text-green-900"
         ></pre>
       </div>
     </div>
 
     <script>
+      const fetchLogs = () => {
+        fetch("/logs")
+          .then((res) => res.text())
+          .then((text) => (document.getElementById("logs").textContent = text));
+      };
+      setInterval(fetchLogs, 3000);
+
+      document.getElementById("acceptEula").onclick = () => {
+        fetch("/accept-eula", { method: "POST" });
+      };
+      document.getElementById("startServer").onclick = () => {
+        fetch("/start", { method: "POST" });
+      };
+      document.getElementById("stopServer").onclick = () => {
+        fetch("/stop", { method: "POST" });
+      };
+      document.getElementById("deleteWorld").onclick = () => {
+        if (
+          confirm(
+            "Are you sure you want to delete the world? This action is irreversible."
+          )
+        ) {
+          fetch("/delete-world", { method: "POST" });
+        }
+      };
+      document.getElementById("sendCommand").onclick = () => {
+        const command = document.getElementById("commandInput").value;
+        fetch("/send-command", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command }),
+        });
+      };
+      document.getElementById("uploadPlugin").onclick = () => {
+        const files = document.getElementById("pluginJar").files;
+        const formData = new FormData();
+        Array.from(files).forEach((file) => {
+          formData.append("pluginJar", file);
+        });
+        fetch("/upload-plugin", { method: "POST", body: formData }).then(() =>
+          loadPlugins()
+        );
+      };
+      document.getElementById("saveProperties").onclick = () => {
+        const content = document.getElementById("serverProperties").value;
+        fetch("/server-properties", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+        });
+      };
+      document.getElementById("downloadPaper").onclick = () => {
+        const version = document.getElementById("paperVersions").value;
+        fetch("/download-paper", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ version }),
+        });
+        window.location.reload();
+      };
+
       const loadVersions = () => {
         fetch("/paper-versions")
           .then((res) => res.json())
@@ -131,71 +201,35 @@
           });
       };
 
-      document.getElementById("acceptEula").onclick = () => {
-        fetch("/accept-eula", { method: "POST" });
-      };
-
-      document.getElementById("startServer").onclick = () => {
-        fetch("/start", { method: "POST" });
-      };
-
-      document.getElementById("stopServer").onclick = () => {
-        fetch("/stop", { method: "POST" });
-      };
-
-      document.getElementById("sendCommand").onclick = () => {
-        const command = document.getElementById("commandInput").value;
-        fetch("/send-command", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ command }),
+      fetch("/eula-status")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.accepted) {
+            const btn = document.getElementById("acceptEula");
+            btn.disabled = true;
+            btn.textContent = "EULA Accepted";
+            btn.classList.add("opacity-50", "cursor-not-allowed");
+          }
         });
-      };
 
-      document.getElementById("downloadPaper").onclick = () => {
-        const version = document.getElementById("paperVersions").value;
-        fetch("/download-paper", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ version }),
+      fetch("/paper-version")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.version) {
+            const select = document.getElementById("paperVersions");
+            const btn = document.getElementById("downloadPaper");
+            const option = document.createElement("option");
+            option.textContent = data.version;
+            option.value = data.version;
+            select.appendChild(option);
+            select.disabled = true;
+            btn.disabled = true;
+            btn.textContent = `Paper ${data.version} in use`;
+            btn.classList.add("opacity-50", "cursor-not-allowed");
+          } else {
+            loadVersions();
+          }
         });
-      };
-
-      document.getElementById("uploadPlugin").onclick = () => {
-        const files = document.getElementById("pluginJar").files;
-        const formData = new FormData();
-        Array.from(files).forEach((file) => {
-          formData.append("pluginJar", file);
-        });
-        fetch("/upload-plugin", { method: "POST", body: formData });
-      };
-
-      document.getElementById("deleteWorld").onclick = () => {
-        if (
-          confirm(
-            "Are you sure you want to delete the world? This action is irreversible."
-          )
-        ) {
-          fetch("/delete-world", { method: "POST" });
-        }
-      };
-
-      document.getElementById("saveProperties").onclick = () => {
-        const content = document.getElementById("serverProperties").value;
-        fetch("/server-properties", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
-        });
-      };
-
-      const fetchLogs = () => {
-        fetch("/logs")
-          .then((res) => res.text())
-          .then((text) => (document.getElementById("logs").textContent = text));
-      };
-
-      setInterval(fetchLogs, 3000);
 
       fetch("/server-properties")
         .then((res) => res.json())
@@ -203,7 +237,57 @@
           document.getElementById("serverProperties").value = data.content;
         });
 
-      loadVersions();
+      const loadPlugins = () => {
+        const list = document.getElementById("pluginList");
+        if (!list) return;
+        fetch("/plugins")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.plugins.length === 0) {
+              const listTitle = document.getElementById("pluginListTitle");
+              listTitle.style.display = "none";
+            }
+            list.innerHTML = "";
+            data.plugins.forEach((plugin) => {
+              const li = document.createElement("li");
+              li.className =
+                "flex items-center justify-between bg-white border border-green-300 rounded-xl p-2 shadow";
+              li.innerHTML = `
+            <span class="text-green-900 font-mono text-sm truncate">${plugin}</span>
+            <button class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded">Delete</button>
+          `;
+              li.querySelector("button").onclick = () => {
+                if (confirm(`Are you sure you want to delete ${plugin}?`)) {
+                  fetch("/plugins/" + plugin, { method: "DELETE" }).then(() =>
+                    loadPlugins()
+                  );
+                }
+              };
+              list.appendChild(li);
+            });
+          });
+      };
+
+      const updateStartStopButtons = () => {
+        fetch("/server-status")
+          .then((res) => res.json())
+          .then((data) => {
+            const stopBtn = document.getElementById("stopServer");
+
+            if (data.status) {
+
+              stopBtn.disabled = false;
+              stopBtn.classList.remove("opacity-50", "cursor-not-allowed");
+            } else {
+              stopBtn.disabled = true;
+              stopBtn.classList.add("opacity-50", "cursor-not-allowed")
+            }
+          });
+      };
+
+      setInterval(updateStartStopButtons, 3000);
+      updateStartStopButtons();
+      loadPlugins();
     </script>
   </body>
 </html>

@@ -8,6 +8,9 @@ import { promisify } from "util";
 const execAsync = promisify(exec);
 const app = express();
 const port = process.env.PORT || 3001;
+let version_: null | string = null;
+let serverStatus_: boolean = false;
+const isLinux = process.platform === "linux";
 
 const serverDir = path.resolve("./minecraft_server");
 const pluginsDir = path.join(serverDir, "plugins");
@@ -25,8 +28,6 @@ const upload = multer({ dest: "uploads/" });
 app.post("/accept-eula", async (_, res) => {
   try {
     fs.writeFileSync(eulaFile, "eula=true\n");
-    const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
-    await execAsync(startCmd, { cwd: serverDir });
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to start server." });
@@ -53,10 +54,42 @@ app.post(
   }
 );
 
+app.get("/plugins", (_, res) => {
+  try {
+    if (!fs.existsSync(pluginsDir)) {
+      res.json({ plugins: [] });
+      return;
+    }
+    const plugins = fs
+      .readdirSync(pluginsDir)
+      .filter((file) => file.endsWith(".jar"));
+    res.json({ plugins });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || "Failed to list plugins." });
+  }
+});
+
+app.delete("/plugins/:pluginName", (req: Request, res: Response) => {
+  try {
+    const pluginName = req.params.pluginName;
+    const pluginPath = path.join(pluginsDir, pluginName);
+    if (!fs.existsSync(pluginPath)) {
+      res.status(404).json({ error: "Plugin not found." });
+      return;
+    }
+    fs.unlinkSync(pluginPath);
+    res.json({ success: true, message: `Plugin ${pluginName} deleted.` });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to delete plugin." });
+  }
+});
+
 app.get("/server-properties", (_, res) => {
   if (!fs.existsSync(serverPropertiesFile)) {
     res.status(404).json({ error: "server.properties not found" });
-    return
+    return;
   }
   const content = fs.readFileSync(serverPropertiesFile, "utf-8");
   res.json({ content });
@@ -73,8 +106,12 @@ app.post("/server-properties", (req: Request, res: Response) => {
 
 app.post("/start", async (_, res) => {
   try {
-    const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
+    const startCmd = isLinux
+      ? `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`
+      : `start "minecraft" cmd /c "java -Xmx4G -jar paper.jar nogui"`;
+
     await execAsync(startCmd, { cwd: serverDir });
+    serverStatus_ = true;
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to start server." });
@@ -83,8 +120,12 @@ app.post("/start", async (_, res) => {
 
 app.post("/stop", async (_, res) => {
   try {
-    const stopCmd = `screen -S minecraft -X stuff "stop\\n"`;
+    const stopCmd = isLinux
+      ? `screen -S minecraft -X stuff "stop\\n"`
+      : `taskkill /IM java.exe /F`;
+
     await execAsync(stopCmd);
+    serverStatus_ = false;
     res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message || "Failed to stop server." });
@@ -94,10 +135,14 @@ app.post("/stop", async (_, res) => {
 app.get("/logs", (_, res) => {
   if (!fs.existsSync(logFile)) {
     res.status(404).json({ error: "Log not found" });
-    return
+    return;
   }
   const content = fs.readFileSync(logFile, "utf-8");
   res.type("text/plain").send(content);
+});
+
+app.get("/server-status", (_, res) => {
+  res.json({ status: serverStatus_, hasJar: version_ });
 });
 
 app.get("/paper-versions", async (_, res) => {
@@ -132,6 +177,8 @@ app.post("/download-paper", async (req: Request, res: Response) => {
       Buffer.from(arrayBuffer)
     );
 
+    version_ = version;
+
     res.json({
       success: true,
       message: `Paper ${version} downloaded successfully.`,
@@ -158,15 +205,36 @@ app.post("/delete-world", (_, res) => {
   }
 });
 
+app.get("/paper-version", (_, res) => {
+  if (version_ === null) {
+    res.status(404).json({ error: "Paper jar not found.", exists: false });
+    return;
+  }
+  res.json({ version: version_ });
+});
+
+app.get("/eula-status", (_, res) => {
+  if (!fs.existsSync(eulaFile)) {
+    res.json({ accepted: false });
+    return;
+  }
+  const content = fs.readFileSync(eulaFile, "utf-8");
+  const accepted = content.includes("eula=true");
+  res.json({ accepted });
+});
+
 app.post("/send-command", (req: Request, res: Response) => {
   const { command } = req.body;
+  console.log(command);
   if (!command || typeof command !== "string") {
     res.status(400).json({ error: "Invalid command." });
   }
   const sendCmd = `screen -S minecraft -X stuff "${command}\\n"`;
   exec(sendCmd, (error, _, stderr) => {
     if (error) {
+      console.log(error);
       res.status(500).json({ error: stderr || "Failed to send command." });
+      return;
     }
     res.json({ success: true, message: `Command "${command}" sent.` });
   });
