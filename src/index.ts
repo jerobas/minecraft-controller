@@ -1,8 +1,10 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
+import readline from "readline";
 import multer from "multer";
+import LokiLogger from "logger";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -12,6 +14,10 @@ const pluginsDir = path.join(serverDir, "plugins");
 const eulaFile = path.join(serverDir, "eula.txt");
 const serverPropertiesFile = path.join(serverDir, "server.properties");
 const logFile = path.join(serverDir, "logs/latest.log");
+const logger = new LokiLogger({
+  jobName: "dev",
+  lokiHost: "http://localhost:3100",
+}).getLogger();
 
 if (!fs.existsSync(serverDir)) fs.mkdirSync(serverDir, { recursive: true });
 if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir, { recursive: true });
@@ -20,15 +26,63 @@ app.use(express.json());
 app.use(express.static("frontend"));
 const upload = multer({ dest: "uploads/" });
 
-app.post("/accept-eula", (_, res) => {
+const restartServer = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const stopCmd = `screen -S minecraft -X stuff "stop\\n"`;
+    exec(stopCmd, (stopError, _, stopStderr) => {
+      if (stopError) return reject(`Failed to stop: ${stopStderr}`);
+      const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
+      exec(startCmd, { cwd: serverDir }, (startError, _, startStderr) => {
+        if (startError) return reject(`Failed to start: ${startStderr}`);
+        resolve();
+      });
+    });
+  });
+};
+
+const watchLogs = () => {
+  if (!fs.existsSync(logFile)) {
+    console.log("Log file not found, waiting for creation...");
+    fs.watch(path.dirname(logFile), (eventType, filename) => {
+      if (filename === "latest.log" && fs.existsSync(logFile)) {
+        console.log("Log file created, starting log tail...");
+        startLogTail();
+      }
+    });
+    return;
+  }
+  startLogTail();
+};
+
+const startLogTail = () => {
+  const stream = fs.createReadStream(logFile, {
+    encoding: "utf-8",
+    flags: "r",
+  });
+  const rl = readline.createInterface({ input: stream });
+
+  rl.on("line", (line) => {
+    logger.info(`[MC LOG] ${line}`);
+  });
+
+  fs.watchFile(logFile, { interval: 1000 }, () => {
+    rl.close();
+    startLogTail();
+  });
+};
+
+watchLogs();
+
+app.post("/accept-eula", async (_, res) => {
   fs.writeFileSync(eulaFile, "eula=true\n");
+  await restartServer();
   res.json({ success: true });
 });
 
 app.post(
   "/upload-plugin",
   upload.array("pluginJar"),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir);
 
     (req.files as Express.Multer.File[]).forEach(
@@ -37,7 +91,7 @@ app.post(
         fs.renameSync(file.path, targetPath);
       }
     );
-
+    await restartServer();
     res.json({ success: true });
   }
 );
@@ -72,12 +126,6 @@ app.post("/stop", (_, res) => {
     res.json({ success: true });
   });
 });
-
-// app.get("/logs", (_, res) => {
-//   if (!fs.existsSync(logFile)) res.status(404).json({ error: "Log not found" });
-//   const content = fs.readFileSync(logFile, "utf-8");
-//   res.type("text/plain").send(content);
-// });
 
 app.get("/paper-versions", async (_, res) => {
   try {
@@ -115,6 +163,24 @@ app.post("/download-paper", async (req: Request, res: Response) => {
   } catch {
     res.status(500).json({ error: "Failed to download Paper jar." });
   }
+});
+
+app.post("/send-command", (req: Request, res: Response) => {
+  const { command } = req.body;
+
+  if (!command || typeof command !== "string") {
+    res.status(400).json({ error: "Invalid command." });
+  }
+
+  const sendCmd = `screen -S minecraft -X stuff "${command}\\n"`;
+  exec(sendCmd, (error, _, stderr) => {
+    if (error) {
+      return res
+        .status(500)
+        .json({ error: stderr || "Failed to send command." });
+    }
+    res.json({ success: true, message: `Command "${command}" sent.` });
+  });
 });
 
 app.listen(port, () => {
