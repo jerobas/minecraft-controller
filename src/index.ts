@@ -36,7 +36,11 @@ const restartServer = (): Promise<void> => {
 
 app.post("/accept-eula", async (_, res) => {
   fs.writeFileSync(eulaFile, "eula=true\n");
-  await restartServer();
+  const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
+  exec(startCmd, { cwd: serverDir }, (error, _, stderr) => {
+    if (error) return res.status(500).json({ error: stderr });
+    res.json({ success: true });
+  });
   res.json({ success: true });
 });
 
@@ -65,15 +69,15 @@ app.get("/server-properties", (req: Request, res: Response) => {
   res.json({ content });
 });
 
-app.post("/server-properties", (req: Request, res: Response) => {
+app.post("/server-properties", async (req: Request, res: Response) => {
   const { content } = req.body;
   fs.writeFileSync(serverPropertiesFile, content);
+  await restartServer();
   res.json({ success: true });
 });
 
 app.post("/start", (_, res) => {
   const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
-  console.log(startCmd);
   exec(startCmd, { cwd: serverDir }, (error, _, stderr) => {
     if (error) return res.status(500).json({ error: stderr });
     res.json({ success: true });
@@ -135,22 +139,12 @@ app.post("/download-paper", async (req: Request, res: Response) => {
 });
 
 app.post("/delete-world", (req: Request, res: Response) => {
-  const worlds = ["world", "world_nether", "world_the_end"];
-  let deleted: string[] = [];
-
-  worlds.forEach((worldName) => {
-    const worldDir = path.join(serverDir, worldName);
-    if (fs.existsSync(worldDir)) {
-      fs.rmSync(worldDir, { recursive: true, force: true });
-      deleted.push(worldName);
-    }
+  fs.rmSync(serverDir, { recursive: true, force: true });
+  fs.mkdirSync(serverDir, { recursive: true });
+  res.json({
+    success: true,
+    message: "Server directory deleted and recreated.",
   });
-
-  if (deleted.length > 0) {
-    res.json({ success: true, message: `Deleted: ${deleted.join(", ")}` });
-  } else {
-    res.status(404).json({ error: "No world directories found to delete." });
-  }
 });
 
 app.post("/send-command", (req: Request, res: Response) => {
