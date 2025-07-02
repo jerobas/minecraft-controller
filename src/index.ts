@@ -135,12 +135,22 @@ app.post("/download-paper", async (req: Request, res: Response) => {
 });
 
 app.post("/delete-world", (req: Request, res: Response) => {
-  const worldDir = path.join(serverDir, "world");
-  if (fs.existsSync(worldDir)) {
-    fs.rmSync(worldDir, { recursive: true, force: true });
-    res.json({ success: true, message: "World deleted successfully." });
+  const worlds = ["world", "world_nether", "world_the_end"];
+  let deleted: string[] = [];
+
+  worlds.forEach((worldName) => {
+    const worldDir = path.join(serverDir, worldName);
+    if (fs.existsSync(worldDir)) {
+      fs.rmSync(worldDir, { recursive: true, force: true });
+      deleted.push(worldName);
+    }
+  });
+
+  if (deleted.length > 0) {
+    res.json({ success: true, message: `Deleted: ${deleted.join(", ")}` });
+  } else {
+    res.status(404).json({ error: "No world directories found to delete." });
   }
-  res.status(404).json({ error: "World directory not found." });
 });
 
 app.post("/send-command", (req: Request, res: Response) => {
