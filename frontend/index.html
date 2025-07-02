@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Minecraft Panel</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body
@@ -20,12 +21,6 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
-          id="acceptEula"
-          class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
-        >
-          Accept EULA
-        </button>
-        <button
           id="startServer"
           class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
@@ -41,11 +36,11 @@
           id="deleteWorld"
           class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
-          Delete World
+          Delete
         </button>
       </div>
 
-      <div>
+      <div id="select-paper">
         <h2 class="text-lg font-bold text-green-800 mb-2">
           Select PaperMC Version
         </h2>
@@ -61,7 +56,7 @@
         </button>
       </div>
 
-      <div>
+      <div id="commandDiv">
         <h2 class="text-lg font-bold text-green-800 mb-2">Send Command</h2>
         <input
           id="commandInput"
@@ -132,9 +127,6 @@
       };
       setInterval(fetchLogs, 3000);
 
-      document.getElementById("acceptEula").onclick = () => {
-        fetch("/accept-eula", { method: "POST" });
-      };
       document.getElementById("startServer").onclick = () => {
         fetch("/start", { method: "POST" });
       };
@@ -142,13 +134,7 @@
         fetch("/stop", { method: "POST" });
       };
       document.getElementById("deleteWorld").onclick = () => {
-        if (
-          confirm(
-            "Are you sure you want to delete the world? This action is irreversible."
-          )
-        ) {
-          fetch("/delete-world", { method: "POST" });
-        }
+        fetch("/delete-world", { method: "POST" });
       };
       document.getElementById("sendCommand").onclick = () => {
         const command = document.getElementById("commandInput").value;
@@ -183,7 +169,6 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ version }),
         });
-        window.location.reload();
       };
 
       const loadVersions = () => {
@@ -201,35 +186,7 @@
           });
       };
 
-      fetch("/eula-status")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.accepted) {
-            const btn = document.getElementById("acceptEula");
-            btn.disabled = true;
-            btn.textContent = "EULA Accepted";
-            btn.classList.add("opacity-50", "cursor-not-allowed");
-          }
-        });
-
-      fetch("/paper-version")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.version) {
-            const select = document.getElementById("paperVersions");
-            const btn = document.getElementById("downloadPaper");
-            const option = document.createElement("option");
-            option.textContent = data.version;
-            option.value = data.version;
-            select.appendChild(option);
-            select.disabled = true;
-            btn.disabled = true;
-            btn.textContent = `Paper ${data.version} in use`;
-            btn.classList.add("opacity-50", "cursor-not-allowed");
-          } else {
-            loadVersions();
-          }
-        });
+      loadVersions();
 
       fetch("/server-properties")
         .then((res) => res.json())
@@ -268,26 +225,62 @@
           });
       };
 
-      const updateStartStopButtons = () => {
-        fetch("/server-status")
-          .then((res) => res.json())
-          .then((data) => {
-            const stopBtn = document.getElementById("stopServer");
+      loadPlugins();
+    </script>
+    <script>
+      const socket = io();
+      let serverStatus = false;
+      let jarFile = false;
 
-            if (data.status) {
+      const updateButtons = () => {
+        const stopBtn = document.getElementById("stopServer");
+        const startBtn = document.getElementById("startServer");
 
-              stopBtn.disabled = false;
-              stopBtn.classList.remove("opacity-50", "cursor-not-allowed");
-            } else {
-              stopBtn.disabled = true;
-              stopBtn.classList.add("opacity-50", "cursor-not-allowed")
-            }
-          });
+        stopBtn.disabled = !serverStatus;
+        stopBtn.classList.toggle("opacity-50", !serverStatus);
+        stopBtn.classList.toggle("cursor-not-allowed", !serverStatus);
+
+        startBtn.disabled = serverStatus || !jarFile;
+        startBtn.classList.toggle("opacity-50", serverStatus || !jarFile);
+        startBtn.classList.toggle(
+          "cursor-not-allowed",
+          serverStatus || !jarFile
+        );
       };
 
-      setInterval(updateStartStopButtons, 3000);
-      updateStartStopButtons();
-      loadPlugins();
+      socket.on("minecraftStatus", (data) => {
+        console.log("Minecraft Status:", data);
+
+        jarFile = data.jarFile;
+        serverStatus = data.online;
+
+        if (jarFile) {
+          document.getElementById("select-paper").style.display = "none";
+          document.getElementById("commandDiv").style.display = "none";
+        } else {
+          document.getElementById("select-paper").style.display = "block";
+          document.getElementById("commandDiv").style.display = "block";
+        }
+
+        updateButtons();
+
+        let statusDisplay = document.getElementById("serverStatusDisplay");
+        if (!statusDisplay) {
+          statusDisplay = document.createElement("div");
+          statusDisplay.id = "serverStatusDisplay";
+          statusDisplay.className = "text-sm text-green-800 text-center mt-2";
+          document.querySelector("h1").after(statusDisplay);
+        }
+
+        if (serverStatus) {
+          const players = data.players?.length
+            ? ` |  ${data.players.join(", ")}`
+            : "";
+          statusDisplay.textContent = `🟢 Online - ${data.playersOnline}/${data.maxPlayers} ${players}`;
+        } else {
+          statusDisplay.textContent = "🔴 Server Offline";
+        }
+      });
     </script>
   </body>
 </html>
