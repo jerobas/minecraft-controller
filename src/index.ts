@@ -56,6 +56,7 @@ app.post(
 app.get("/server-properties", (_, res) => {
   if (!fs.existsSync(serverPropertiesFile)) {
     res.status(404).json({ error: "server.properties not found" });
+    return
   }
   const content = fs.readFileSync(serverPropertiesFile, "utf-8");
   res.json({ content });
@@ -93,6 +94,7 @@ app.post("/stop", async (_, res) => {
 app.get("/logs", (_, res) => {
   if (!fs.existsSync(logFile)) {
     res.status(404).json({ error: "Log not found" });
+    return
   }
   const content = fs.readFileSync(logFile, "utf-8");
   res.type("text/plain").send(content);
