@@ -20,20 +20,6 @@ app.use(express.json());
 app.use(express.static("frontend"));
 const upload = multer({ dest: "uploads/" });
 
-const restartServer = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const stopCmd = `screen -S minecraft -X stuff "stop\\n"`;
-    exec(stopCmd, (stopError, _, stopStderr) => {
-      if (stopError) return reject(`Failed to stop: ${stopStderr}`);
-      const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
-      exec(startCmd, { cwd: serverDir }, (startError, _, startStderr) => {
-        if (startError) return reject(`Failed to start: ${startStderr}`);
-        resolve();
-      });
-    });
-  });
-};
-
 app.post("/accept-eula", async (_, res) => {
   fs.writeFileSync(eulaFile, "eula=true\n");
   const startCmd = `screen -dmS minecraft java -Xmx4G -jar paper.jar nogui`;
@@ -56,7 +42,6 @@ app.post(
         fs.renameSync(file.path, targetPath);
       }
     );
-    await restartServer();
     res.json({ success: true });
   }
 );
@@ -72,7 +57,6 @@ app.get("/server-properties", (req: Request, res: Response) => {
 app.post("/server-properties", async (req: Request, res: Response) => {
   const { content } = req.body;
   fs.writeFileSync(serverPropertiesFile, content);
-  await restartServer();
   res.json({ success: true });
 });
 
