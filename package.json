@@ -11,16 +11,11 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
-    "dotenv": "^17.0.1",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "logger": "github:jerobas/logger",
-    "multer": "^2.0.1",
-    "node-fetch": "^3.3.2"
+    "multer": "^2.0.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
-    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.0.10",
     "ts-node": "^10.9.2",

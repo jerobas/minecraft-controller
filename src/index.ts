@@ -2,9 +2,7 @@ import express, { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
-import readline from "readline";
 import multer from "multer";
-import LokiLogger from "logger";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -14,10 +12,6 @@ const pluginsDir = path.join(serverDir, "plugins");
 const eulaFile = path.join(serverDir, "eula.txt");
 const serverPropertiesFile = path.join(serverDir, "server.properties");
 const logFile = path.join(serverDir, "logs/latest.log");
-const logger = new LokiLogger({
-  jobName: "dev",
-  lokiHost: "http://localhost:3100",
-}).getLogger();
 
 if (!fs.existsSync(serverDir)) fs.mkdirSync(serverDir, { recursive: true });
 if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir, { recursive: true });
@@ -40,38 +34,6 @@ const restartServer = (): Promise<void> => {
   });
 };
 
-const watchLogs = () => {
-  if (!fs.existsSync(logFile)) {
-    console.log("Log file not found, waiting for creation...");
-    fs.watch(path.dirname(logFile), (eventType, filename) => {
-      if (filename === "latest.log" && fs.existsSync(logFile)) {
-        console.log("Log file created, starting log tail...");
-        startLogTail();
-      }
-    });
-    return;
-  }
-  startLogTail();
-};
-
-const startLogTail = () => {
-  const stream = fs.createReadStream(logFile, {
-    encoding: "utf-8",
-    flags: "r",
-  });
-  const rl = readline.createInterface({ input: stream });
-
-  rl.on("line", (line) => {
-    logger.info(`[MC LOG] ${line}`);
-  });
-
-  fs.watchFile(logFile, { interval: 1000 }, () => {
-    rl.close();
-    startLogTail();
-  });
-};
-
-watchLogs();
 
 app.post("/accept-eula", async (_, res) => {
   fs.writeFileSync(eulaFile, "eula=true\n");
@@ -125,6 +87,14 @@ app.post("/stop", (_, res) => {
     if (error) return res.status(500).json({ error: stderr });
     res.json({ success: true });
   });
+});
+
+app.get("/logs", (_, res) => {
+  if (!fs.existsSync(logFile)) {
+    res.status(404).json({ error: "Log not found" });
+  }
+  const content = fs.readFileSync(logFile, "utf-8");
+  res.type("text/plain").send(content);
 });
 
 app.get("/paper-versions", async (_, res) => {

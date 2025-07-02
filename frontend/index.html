@@ -59,6 +59,22 @@
       </div>
 
       <div>
+        <h2 class="font-semibold mt-4 mb-2">Send Command</h2>
+        <input
+          id="commandInput"
+          type="text"
+          placeholder="Type command to send"
+          class="w-full p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          id="sendCommand"
+          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg w-full mt-2 transition"
+        >
+          Send Command
+        </button>
+      </div>
+
+      <div>
         <h2 class="font-semibold mt-4 mb-2">Upload Plugin(s)</h2>
         <input
           id="pluginJar"
@@ -130,6 +146,15 @@
 
       document.getElementById("stopServer").onclick = () => {
         fetch("/stop", { method: "POST", headers: getHeaders() });
+      };
+
+      document.getElementById("sendCommand").onclick = () => {
+        const command = document.getElementById("commandInput").value;
+        fetch("/send-command", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...getHeaders() },
+          body: JSON.stringify({ command }),
+        });
       };
 
       document.getElementById("downloadPaper").onclick = () => {
