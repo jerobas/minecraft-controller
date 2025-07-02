@@ -14,6 +14,7 @@ const serverPropertiesFile = path.join(serverDir, "server.properties");
 const logFile = path.join(serverDir, "logs/latest.log");
 
 if (!fs.existsSync(serverDir)) fs.mkdirSync(serverDir, { recursive: true });
+if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir, { recursive: true });
 
 app.use(express.json());
 app.use(express.static("frontend"));
@@ -24,18 +25,24 @@ app.post("/accept-eula", (_, res) => {
   res.json({ success: true });
 });
 
-app.post("/upload-plugin", upload.array("pluginJar"), (req, res) => {
-  if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir);
+app.post(
+  "/upload-plugin",
+  upload.array("pluginJar"),
+  (req: Request, res: Response) => {
+    if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir);
 
-  (req.files as Express.Multer.File[]).forEach((file: Express.Multer.File) => {
-    const targetPath = path.join(pluginsDir, file.originalname);
-    fs.renameSync(file.path, targetPath);
-  });
+    (req.files as Express.Multer.File[]).forEach(
+      (file: Express.Multer.File) => {
+        const targetPath = path.join(pluginsDir, file.originalname);
+        fs.renameSync(file.path, targetPath);
+      }
+    );
 
-  res.json({ success: true });
-});
+    res.json({ success: true });
+  }
+);
 
-app.get("/server-properties", (req, res) => {
+app.get("/server-properties", (req: Request, res: Response) => {
   if (!fs.existsSync(serverPropertiesFile)) {
     res.status(404).json({ error: "server.properties not found" });
   }
@@ -43,7 +50,7 @@ app.get("/server-properties", (req, res) => {
   res.json({ content });
 });
 
-app.post("/server-properties", (req, res) => {
+app.post("/server-properties", (req: Request, res: Response) => {
   const { content } = req.body;
   fs.writeFileSync(serverPropertiesFile, content);
   res.json({ success: true });
@@ -82,7 +89,7 @@ app.get("/paper-versions", async (_, res) => {
   }
 });
 
-app.post("/download-paper", async (req, res) => {
+app.post("/download-paper", async (req: Request, res: Response) => {
   const { version } = req.body;
   try {
     const buildsRes = await fetch(
