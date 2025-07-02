@@ -73,11 +73,11 @@ app.post("/stop", (_, res) => {
   });
 });
 
-app.get("/logs", (_, res) => {
-  if (!fs.existsSync(logFile)) res.status(404).json({ error: "Log not found" });
-  const content = fs.readFileSync(logFile, "utf-8");
-  res.type("text/plain").send(content);
-});
+// app.get("/logs", (_, res) => {
+//   if (!fs.existsSync(logFile)) res.status(404).json({ error: "Log not found" });
+//   const content = fs.readFileSync(logFile, "utf-8");
+//   res.type("text/plain").send(content);
+// });
 
 app.get("/paper-versions", async (_, res) => {
   try {
