@@ -10,8 +10,8 @@ const Init = () => {
     const serverDir = path_1.default.resolve("./minecraft_server");
     const pluginsDir = path_1.default.join(serverDir, "plugins");
     const eulaFile = path_1.default.join(serverDir, "eula.txt");
-    const templateFile = path_1.default.resolve("src/template/server.properties");
-    const templateImage = path_1.default.resolve("src/template/server-icon.png");
+    const templateFile = path_1.default.join(__dirname, "../template/server.properties");
+    const templateImage = path_1.default.join(__dirname, "../template/server-icon.png");
     const serverTemplateImage = path_1.default.join(serverDir, "server-icon.png");
     const serverPropertiesFile = path_1.default.join(serverDir, "server.properties");
     if (!fs_1.default.existsSync(serverDir))
