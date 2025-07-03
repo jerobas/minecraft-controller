@@ -26,6 +26,12 @@ Este projeto é um **servidor Node.js em TypeScript** que expõe um frontend (`i
 
 ---
 
+## 📝 Requisitos
+ - Ter instalado o Node 22 no seu sistema. Baixe ele clicando [aqui](https://nodejs.org/dist/latest-v22.x/node-v22.17.0-x86.msi)
+ - Clonar o projeto para seu sistema ou baixar o .zip clicando [aqui](https://github.com/jerobas/minecraft-controller/archive/refs/heads/main.zip)
+ - Descompacte o arquivo e siga os passos abaixo
+
+
 ## 🚀 Como rodar
 
 ### 1️⃣ Instalar dependências

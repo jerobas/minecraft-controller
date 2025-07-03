@@ -15,7 +15,7 @@
   "author": "flaviozno",
   "license": "ISC",
   "type": "commonjs",
-  "description": "",
+  "description": "Easily set up and manage a Minecraft PAPER server with a clean, user-friendly interface.",
   "dependencies": {
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
