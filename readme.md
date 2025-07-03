@@ -51,6 +51,9 @@ PASSWORD="admin_pass"
 npm run start
 ```
 
+## 🖼️ Como mudar o icone do servidor
+Gere um arquivo server-icon.png com 64x64 pixels e coloque em /dist/template, substituindo o que existe lá atualmente.
+
 ## ⚙️ Tecnologias Utilizadas
   - Node.js 22
   - TypeScript
