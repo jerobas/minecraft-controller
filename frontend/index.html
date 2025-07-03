@@ -6,17 +6,48 @@
     <title>Minecraft Panel</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
   </head>
   <body
     class="bg-gradient-to-br from-green-100 via-white to-green-50 min-h-screen flex items-center justify-center p-4"
   >
+    <div
+      id="loginModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4">
+        <h2 class="text-xl font-bold text-center text-green-800">Login</h2>
+        <input
+          id="username"
+          type="text"
+          placeholder="Username"
+          class="w-full p-3 rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+        />
+        <input
+          id="password"
+          type="password"
+          placeholder="Password"
+          class="w-full p-3 rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400"
+        />
+        <button
+          id="loginBtn"
+          class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-xl w-full"
+        >
+          Login
+        </button>
+      </div>
+    </div>
     <div
       class="backdrop-blur-sm bg-white/80 border border-green-200 rounded-3xl shadow-2xl max-w-2xl w-full p-8 space-y-6"
     >
       <h1
         class="text-4xl font-extrabold text-center mb-4 text-green-800 drop-shadow"
       >
-        🌿 Minecraft Server Panel
+        Minecraft Server Panel
       </h1>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -41,9 +72,7 @@
       </div>
 
       <div id="select-paper">
-        <h2 class="text-lg font-bold text-green-800 mb-2">
-          Select PaperMC Version
-        </h2>
+        <h2 class="text-lg font-bold text-green-800 mb-2">PaperMC Version</h2>
         <select
           id="paperVersions"
           class="text-gray-800 p-3 w-full rounded-xl border border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -72,19 +101,36 @@
         </button>
       </div>
 
-      <div>
+      <div class="space-y-2">
         <h2 class="text-lg font-bold text-green-800 mb-2">Upload Plugin(s)</h2>
-        <input
-          id="pluginJar"
-          type="file"
-          class="block text-gray-800 w-full p-3 rounded-xl border border-green-300 bg-white"
-          multiple
-        />
+        <label
+          for="pluginJar"
+          class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-green-300 rounded-2xl cursor-pointer bg-green-50 hover:bg-green-100 transition"
+        >
+          <svg
+            class="w-10 h-10 text-green-500 mb-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"
+            ></path>
+          </svg>
+          <span class="text-green-600 font-medium"
+            >Click to select or drag files here</span
+          >
+          <input id="pluginJar" type="file" class="hidden" multiple />
+        </label>
         <button
           id="uploadPlugin"
-          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-3 rounded-xl w-full mt-2 transition-all shadow"
+          class="bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-xl w-full transition-all shadow"
         >
-          Upload Plugin(s)
+          Upload Selected Plugin(s)
         </button>
       </div>
 
@@ -121,26 +167,48 @@
 
     <script>
       const fetchLogs = () => {
-        fetch("/logs")
+        fetch("/protected/logs", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        })
           .then((res) => res.text())
-          .then((text) => (document.getElementById("logs").textContent = text));
+          .then((text) => {
+            const logsElement = document.getElementById("logs");
+            const maxLines = 300;
+            let lines = text.trim().split("\n");
+            if (lines.length > maxLines) {
+              lines = lines.slice(-maxLines);
+            }
+            logsElement.textContent = lines.join("\n");
+          });
       };
       setInterval(fetchLogs, 3000);
 
       document.getElementById("startServer").onclick = () => {
-        fetch("/start", { method: "POST" });
+        fetch("/protected/start", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
       };
       document.getElementById("stopServer").onclick = () => {
-        fetch("/stop", { method: "POST" });
+        fetch("/protected/stop", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
       };
       document.getElementById("deleteWorld").onclick = () => {
-        fetch("/delete-world", { method: "POST" });
+        fetch("/protected/delete-world", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
       };
       document.getElementById("sendCommand").onclick = () => {
         const command = document.getElementById("commandInput").value;
-        fetch("/send-command", {
+        fetch("/protected/send-command", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: JSON.stringify({ command }),
         });
       };
@@ -150,29 +218,39 @@
         Array.from(files).forEach((file) => {
           formData.append("pluginJar", file);
         });
-        fetch("/upload-plugin", { method: "POST", body: formData }).then(() =>
-          loadPlugins()
-        );
+        fetch("/protected/upload-plugin", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          body: formData,
+        }).then(() => loadPlugins());
       };
       document.getElementById("saveProperties").onclick = () => {
         const content = document.getElementById("serverProperties").value;
-        fetch("/server-properties", {
+        fetch("/protected/server-properties", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: JSON.stringify({ content }),
         });
       };
       document.getElementById("downloadPaper").onclick = () => {
         const version = document.getElementById("paperVersions").value;
-        fetch("/download-paper", {
+        fetch("/protected/download-paper", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: JSON.stringify({ version }),
         });
       };
 
       const loadVersions = () => {
-        fetch("/paper-versions")
+        fetch("/protected/paper-versions", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        })
           .then((res) => res.json())
           .then((data) => {
             const select = document.getElementById("paperVersions");
@@ -188,7 +266,9 @@
 
       loadVersions();
 
-      fetch("/server-properties")
+      fetch("/protected/server-properties", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
         .then((res) => res.json())
         .then((data) => {
           document.getElementById("serverProperties").value = data.content;
@@ -197,7 +277,9 @@
       const loadPlugins = () => {
         const list = document.getElementById("pluginList");
         if (!list) return;
-        fetch("/plugins")
+        fetch("/protected/plugins", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        })
           .then((res) => res.json())
           .then((data) => {
             if (data.plugins.length === 0) {
@@ -215,9 +297,12 @@
           `;
               li.querySelector("button").onclick = () => {
                 if (confirm(`Are you sure you want to delete ${plugin}?`)) {
-                  fetch("/plugins/" + plugin, { method: "DELETE" }).then(() =>
-                    loadPlugins()
-                  );
+                  fetch("/protected/plugins/" + plugin, {
+                    method: "DELETE",
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  }).then(() => loadPlugins());
                 }
               };
               list.appendChild(li);
@@ -231,6 +316,17 @@
       const socket = io();
       let serverStatus = false;
       let jarFile = false;
+
+      const showToast = (message, color = "#34D399") => {
+        Toastify({
+          text: message,
+          duration: 3000,
+          gravity: "top",
+          position: "center",
+          backgroundColor: color,
+          stopOnFocus: true,
+        }).showToast();
+      };
 
       const updateButtons = () => {
         const stopBtn = document.getElementById("stopServer");
@@ -249,10 +345,23 @@
       };
 
       socket.on("minecraftStatus", (data) => {
-        console.log("Minecraft Status:", data);
+        const prevJarFile = jarFile;
+        const prevServerStatus = serverStatus;
 
         jarFile = data.jarFile;
         serverStatus = data.online;
+
+        if (jarFile !== prevJarFile) {
+          showToast(
+            `Server was ${jarFile ? "downloaded" : "not downloaded yet"}`
+          );
+        }
+        if (serverStatus !== prevServerStatus) {
+          showToast(
+            `Server is now ${serverStatus ? "online" : "offline"}`,
+            serverStatus ? "#34D399" : "#F87171"
+          );
+        }
 
         if (jarFile) {
           document.getElementById("select-paper").style.display = "none";
@@ -274,13 +383,40 @@
 
         if (serverStatus) {
           const players = data.players?.length
-            ? ` |  ${data.players.join(", ")}`
+            ? ` | ${data.players.join(", ")}`
             : "";
           statusDisplay.textContent = `🟢 Online - ${data.playersOnline}/${data.maxPlayers} ${players}`;
         } else {
           statusDisplay.textContent = "🔴 Server Offline";
         }
       });
+      const loginModal = document.getElementById("loginModal");
+      const loginBtn = document.getElementById("loginBtn");
+
+      if (!localStorage.getItem("token")) {
+        loginModal.style.display = "flex";
+      } else {
+        loginModal.style.display = "none";
+      }
+
+      loginBtn.onclick = async () => {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        const res = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem("token", data.token);
+          loginModal.style.display = "none";
+        } else {
+          showToast(`Invalid credentials`, "#F87171");
+        }
+      };
     </script>
   </body>
 </html>

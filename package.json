@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "minecraft-server-util": "^5.4.4",
     "multer": "^2.0.1",
     "node-cron": "^4.2.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.0.10",
     "ts-node": "^10.9.2",
