@@ -1,0 +1,54 @@
+# Minecraft Server Manager
+
+Este projeto é um **servidor Node.js em TypeScript** que expõe um frontend (`index.html`) para gerenciar servidores **PaperMC do Minecraft**, permitindo baixar automaticamente a versão desejada, configurar, monitorar e controlar o servidor de forma simples e visual.
+
+---
+
+## ✨ Funcionalidades
+
+✅ **Baixar PaperMC**
+- Seleciona e baixa automaticamente a versão desejada do PaperMC para seu servidor.
+
+✅ **Configuração automática**
+- Configura o `eula.txt` e `server.properties` automaticamente.
+- Cria estrutura padrão de diretórios (`plugins`, `world`, etc).
+
+✅ **Monitoramento**
+- Visualiza **logs em tempo real** do servidor.
+- Mostra **players online** em tempo real.
+
+✅ **Gerenciamento**
+- Botões de **start** e **stop** do servidor PaperMC diretamente pelo painel.
+- Upload e gerenciamento de **plugins** diretamente pela interface.
+
+✅ **Frontend limpo**
+- Servido via Express com `index.html` e TailwindCSS.
+
+---
+
+## 🚀 Como rodar
+
+### 1️⃣ Instalar dependências
+```bash
+npm install
+```
+
+### 2️⃣ Criar um .env
+```bash
+PORT=3000
+JWT_SECRET=key
+PASSWORD="admin_pass"
+```
+
+### 3️⃣ Executar
+```bash
+npm run start
+```
+
+## ⚙️ Tecnologias Utilizadas
+  - Node.js 22
+  - TypeScript
+  - Express
+  - TailwindCSS (no frontend)
+  - Socket.IO (logs e players online em tempo real)
+  - PaperMC API para download automatizado das versões
