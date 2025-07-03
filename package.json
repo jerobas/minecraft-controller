@@ -4,7 +4,8 @@
   "main": "index.ts",
   "scripts": {
     "dev": "ts-node-dev --env-file=.env src/index.ts",
-    "build": "npx tsc",
+    "build:linux": "tsc && cp -r src/template dist/template",
+    "build:win": "tsc && xcopy src\\template dist\\template /E /I",
     "start": "node --env-file=.env dist/index.js"
   },
   "engines": {
