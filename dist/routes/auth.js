@@ -10,7 +10,7 @@ const SECRET = process.env.JWT_SECRET || "minecraft_secret";
 router.post("/login", (req, res) => {
     const { username, password } = req.body;
     if (username === "admin" && password === process.env.PASSWORD) {
-        const token = jsonwebtoken_1.default.sign({ username }, SECRET, { expiresIn: "1h" });
+        const token = jsonwebtoken_1.default.sign({ username }, SECRET);
         res.json({ token });
         return;
     }
