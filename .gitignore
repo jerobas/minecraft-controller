@@ -3,3 +3,4 @@
 /uploads
 /src
 tsconfig.json
+.env
